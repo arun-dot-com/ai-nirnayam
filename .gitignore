@@ -1,0 +1,89 @@
+# ==========================================
+# Environment Variables & Secrets (CRITICAL)
+# ==========================================
+.env
+.env.local
+.env.*.local
+.streamlit/secrets.toml
+
+# ==========================================
+# Python Artifacts & Bytecode
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ==========================================
+# Virtual Environments
+# ==========================================
+.venv/
+venv/
+ENV/
+.python312-venv/
+env/
+
+# ==========================================
+# Generated Data & Databases (DO NOT COMMIT)
+# ==========================================
+# SQLite databases (e.g., nirnayam_policies.db)
+data/*.db
+
+# Vector Store Indexes (FAISS generated files)
+data/faiss_index/
+data/mem0_faiss_index/
+data/test_mem0_faiss_index/
+
+# ==========================================
+# Testing & Coverage Reports
+# ==========================================
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ==========================================
+# IDE & Editor Configurations
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ==========================================
+# OS Specific Files
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ==========================================
+# Logs
+# ==========================================
+*.log
+logs/
+
+# ==========================================
+# Generated Data & Databases (DO NOT COMMIT)
+# ==========================================
+# SQLite databases (e.g., nirnayam_policies.db)
+data/*.db
+
+# Vector Store Indexes (FAISS generated files - catch all variations)
+data/faiss_index/
+data/faiss_index_*/
+data/mem0_faiss_index/
+data/test_mem0_faiss_index/
