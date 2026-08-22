@@ -30,35 +30,9 @@ import os
 
 @st.cache_resource
 def load_system_components():
-    with st.spinner("Loading AI components and Policy Registry..."):
-        # 1. Load Vector Store (RAG) - WITH CLOUD FALLBACK
+    with st.spinner("Loading AI components, Vector Store, and Policy Registry..."):
+        # 1. Load Vector Store (RAG) - Now reliably loads from the committed index
         vs_manager = VectorStoreManager(persist_directory="data/faiss_index")
-        
-        # If the index doesn't exist (e.g., first boot on Streamlit Cloud), build it!
-        if not os.path.exists("data/faiss_index/index.faiss"):
-            st.warning("🏗️ FAISS index not found. Building it now... (Takes ~30 seconds)")
-            from src.ingestion.pdf_parser import extract_text_from_pdf
-            from src.ingestion.chunking import chunk_text
-            from langchain_openai import OpenAIEmbeddings
-            from langchain_community.vectorstores import FAISS
-            
-            # Simple inline build for cloud initialization
-            all_docs = []
-            for folder in ["data/raw_imt_tariffs", "data/policy_wordings"]:
-                if os.path.exists(folder):
-                    for pdf_file in os.listdir(folder):
-                        if pdf_file.endswith(".pdf"):
-                            text = extract_text_from_pdf(os.path.join(folder, pdf_file))
-                            all_docs.extend(chunk_text(text))
-                            
-            if all_docs:
-                embedder = OpenAIEmbeddings(model="text-embedding-3-small")
-                vectorstore = FAISS.from_documents(all_docs, embedder)
-                vs_manager.save_index(vectorstore)
-            else:
-                st.error("No PDFs found in data/ folders to build index!")
-                st.stop()
-                
         vectorstore = vs_manager.load_index()
         
         # 2. Initialize Agent & Policy Registry
