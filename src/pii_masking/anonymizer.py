@@ -4,19 +4,21 @@ import uuid
 from typing import Dict, Tuple, Optional
 import redis
 import spacy
-import subprocess
-import sys
 from presidio_analyzer import AnalyzerEngine, RecognizerRegistry
 from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
 
 from src.pii_masking.custom_recognizers import CustomIndianRecognizerLoader
+
+logger = logging.getLogger(__name__)
+
+# The model will be installed via requirements.txt, so this will load successfully.
+# (Fallback to 'sm' just in case, to prevent any hard crashes)
 try:
     spacy.load("en_core_web_lg")
 except OSError:
-    logging.info("⬇️ spaCy model 'en_core_web_lg' not found. Downloading for cloud environment...")
-    subprocess.check_call([sys.executable, "-m", "spacy", "download", "en_core_web_lg"])
-    logging.info("✅ spaCy model downloaded successfully.")
+    logger.warning("en_core_web_lg not found, falling back to en_core_web_sm")
+    spacy.load("en_core_web_sm")
 
 logger = logging.getLogger(__name__)
 
