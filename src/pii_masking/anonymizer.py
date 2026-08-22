@@ -5,6 +5,7 @@ from typing import Dict, Tuple, Optional
 import redis
 import spacy
 import subprocess
+import sys
 from presidio_analyzer import AnalyzerEngine, RecognizerRegistry
 from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
