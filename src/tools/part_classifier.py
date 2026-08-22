@@ -9,7 +9,6 @@ def classify_part(part_name: str) -> str:
     """
     name_lower = part_name.lower()
 
-        return "MECHANICAL_EXCLUSION"
     # 1. Mechanical / Consequential Exclusions (Highest Priority)
     if any(kw in name_lower for kw in ["engine", "engine sump", "consequential", "wear and tear", "rust", "mechanical breakdown"]):
         return "MECHANICAL_EXCLUSION"
