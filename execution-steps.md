@@ -1,6 +1,5 @@
 ### `execution-steps.md` (Updated to reflect the completed build & how to run)
 
-```markdown
 # Project Execution & Build History
 
 ## Build History (Completed Steps)
@@ -15,7 +14,6 @@ This project was built in a strict, modular sequence to ensure enterprise-grade 
 - ✅ **Step 7**: `src/observability/` and `src/ui/` (LangSmith setup and Streamlit dashboard).
 - ✅ **Step 8**: `src/policy/` & Fraud Detection (SQLite Policy Gatekeeper, Hard Rejections, and Discrepancy Warnings).
 
----
 
 ## How to Run the Application
 
@@ -26,20 +24,22 @@ This project was built in a strict, modular sequence to ensure enterprise-grade 
 4. An `.env` file configured with your `OPENAI_API_KEY` and `REDIS_URL`.
 
 ### Installation & Setup
-```bash
+
 # 1. Clone the repository and navigate to the folder
+```bash
 cd autonomous-motor-od-adjudicator
-
+```
 # 2. Install dependencies via Poetry
+```bash
 poetry install
-
+```
 # 3. (Optional) Run the full test suite to verify all 26 tests pass
+```bash
 poetry run pytest tests/ -v -s
 ```
 
-### Running the UI
+# 4. Running the UI
 ```bash
-# Launch the Streamlit Dashboard
 poetry run streamlit run src/ui/streamlit_app.py
 ```
 *The application will open at `http://localhost:8501`.*
@@ -53,9 +53,7 @@ poetry run streamlit run src/ui/streamlit_app.py
    - Or use **Manual Structured Entry** to input exact parts and costs.
 3. **Adjudication:** Click process. The system will mask PII, retrieve RAG clauses, calculate deterministic depreciation, and check for fraud.
 4. **Final Report:** View the financial summary, line-item breakdowns, and any system warnings regarding policy discrepancies.
-```
 
----
 
 ### Why these updates matter:
 1. **The Architecture Diagram** now clearly shows the **SQLite Gatekeeper** acting as a bouncer before the AI even gets to look at the claim. This is your biggest selling point for enterprise security.

@@ -6,14 +6,13 @@
 ## 2. System Architecture Diagram
 *Note: This diagram uses Mermaid.js and is fully renderable on GitHub.*
 
-```mermaid
 flowchart TD
-    subgraph User Interface & Input
+    subgraph "User Interface & Input"
         A[Surveyor Dashboard: Streamlit UI] -->|1. Policy Number| B{Policy Gatekeeper}
         A -->|2. Raw Claim Text| C[PII Masking Layer]
     end
 
-    subgraph Verification & Privacy Layer
+    subgraph "Verification & Privacy Layer"
         B -->|SQLite DB Lookup| D[(Policy Registry: nirnayam_policies.db)]
         D -->|Active Policy & True Add-ons| E[Inject Verified State]
         D -->|Expired/Invalid| F[Hard Reject Claim]
@@ -22,13 +21,13 @@ flowchart TD
         G -->|Store Mapping with 24h TTL| H[(Redis: PII Mapping Store)]
     end
 
-    subgraph Knowledge & Memory Layer
+    subgraph "Knowledge & Memory Layer"
         I[Original Data: IRDAI, IIB, Insurer Wordings] --> J[IMT & Policy RAG Pipeline]
         J --> K[(Vector DB: FAISS)]
         L[Historical Claims & NCB Data] --> M[Mem0 Long-Term Memory]
     end
 
-    subgraph Autonomous Agent & Tool Layer
+    subgraph "Autonomous Agent & Tool Layer"
         E --> N[Surveyor Adjudicator Agent: LangGraph]
         G --> N
         K -->|Retrieves IMT Clauses| N
@@ -39,7 +38,7 @@ flowchart TD
         N <-->|Tool Calling| Q[Parts Category Classifier]
     end
 
-    subgraph Validation, Fraud & Observability Layer
+    subgraph "Validation, Fraud & Observability Layer"
         N --> R[Guardrails: Pydantic Validators]
         R -->|Math Parity & Schema Checks| S{Discrepancy Detector}
         S -->|Flags Text vs DB mismatches| T[Final Structured JSON Output]
@@ -48,7 +47,7 @@ flowchart TD
         U -.->|Monitors| R
     end
 
-    subgraph Final Output
+    subgraph "Final Output"
         T --> V[UI: Financial Summary & Line Items]
         H -->|De-anonymization| W[Final Survey Sign-off Report]
     end

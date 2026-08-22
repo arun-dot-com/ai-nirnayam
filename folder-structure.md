@@ -1,9 +1,9 @@
 ### `folder-structure.md` (Updated with actual project files)
 
-```markdown
+
 ### Folder Structure
 
-```text
+```
 autonomous-motor-od-adjudicator/
 │
 ├── .env.example                 # Environment variables template (API keys, DB URLs)
@@ -84,3 +84,4 @@ autonomous-motor-od-adjudicator/
     ├── test_ingestion_rag.py    # Tests for PDF parsing and FAISS
     ├── test_agent.py            # Tests for LangGraph state flow
     └── test_e2e_scenarios.py    # End-to-End business logic tests
+```
