@@ -8,6 +8,12 @@ from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
 
 from src.pii_masking.custom_recognizers import CustomIndianRecognizerLoader
+try:
+    spacy.load("en_core_web_lg")
+except OSError:
+    logging.info("⬇️ spaCy model 'en_core_web_lg' not found. Downloading for cloud environment...")
+    subprocess.check_call([sys.executable, "-m", "spacy", "download", "en_core_web_lg"])
+    logging.info("✅ spaCy model downloaded successfully.")
 
 logger = logging.getLogger(__name__)
 

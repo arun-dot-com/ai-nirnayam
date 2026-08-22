@@ -7,6 +7,7 @@ authors = ["AI Engineer"]
 [tool.poetry.dependencies]
 redis = "^5.0.0"
 python = "^3.10"
+numpy = "<2.0.0"  
 # Core AI & LangChain
 langchain = "^0.3.0"
 langchain-openai = "^0.2.0"
