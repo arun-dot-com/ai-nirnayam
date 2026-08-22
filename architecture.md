@@ -6,6 +6,7 @@
 ## 2. System Architecture Diagram
 *Note: This diagram uses Mermaid.js and is fully renderable on GitHub.*
 
+```mermaid
 flowchart TD
     subgraph "User Interface & Input"
         A[Surveyor Dashboard: Streamlit UI] -->|1. Policy Number| B{Policy Gatekeeper}
