@@ -230,11 +230,16 @@ class SurveyorAgent:
         raw_text_lower = state.get("raw_input_text", "").lower()
         verified = state.get("verified_add_ons", {})
         
-        # Use 'not' instead of 'is False' to safely handle SQLite integer 0
-        if not verified.get("has_engine_protect") and any(kw in raw_text_lower for kw in ["engine protect", "engine cover", "engine protection"]):
-            warnings.append("⚠️ Claim text mentions 'Engine Cover/Protect', but policy records show this add-on is NOT active. Evaluated without it.")
+        # Safely check for falsy values (handles False, 0, or None from SQLite)
+        has_engine_protect = verified.get("has_engine_protect")
+        has_zero_dep = verified.get("has_zero_depreciation")
+        
+        # Check for Engine Protect variations
+        if not has_engine_protect and any(kw in raw_text_lower for kw in ["engine protect", "engine cover", "engine protection"]):
+            warnings.append("⚠️ Claim text mentions 'Engine Protect' or 'Engine Cover', but policy records show this add-on is NOT active. Evaluated without it.")
             
-        if not verified.get("has_zero_depreciation") and any(kw in raw_text_lower for kw in ["zero dep", "zero depreciation", "bumper to bumper", "nil depreciation"]):
+        # Check for Zero Depreciation variations
+        if not has_zero_dep and any(kw in raw_text_lower for kw in ["zero dep", "zero depreciation", "bumper to bumper", "nil depreciation"]):
             warnings.append("⚠️ Claim text mentions 'Zero Depreciation', but policy records show this add-on is NOT active. Evaluated without it.")
 
         final_assessment = {
@@ -257,7 +262,7 @@ class SurveyorAgent:
         }
         
         return {"final_assessment": final_assessment}
-
+        
     def build_graph(self):
         """Constructs and compiles the LangGraph workflow."""
         workflow = StateGraph(AgentState)

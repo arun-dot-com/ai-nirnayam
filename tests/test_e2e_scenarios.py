@@ -116,5 +116,10 @@ def test_e2e_fraud_detection_warning(e2e_agent):
     assert item.category == "MECHANICAL_EXCLUSION"
     assert item.approved_cost_inr == 0.0
     
-    assert len(assessment.system_warnings) > 0
-    assert any("Engine Protect" in warning and "NOT active" in warning for warning in assessment.system_warnings)
+    # Improved assertion: prints the actual warnings if it fails
+    assert len(assessment.system_warnings) > 0, f"Expected system warnings, but got empty list. Full assessment: {assessment}"
+    
+    # Join all warnings into one string for easier checking
+    all_warnings = " ".join(assessment.system_warnings)
+    assert "Engine Protect" in all_warnings and "NOT active" in all_warnings, \
+        f"Expected 'Engine Protect' and 'NOT active' in warnings. Actual warnings: {assessment.system_warnings}"
