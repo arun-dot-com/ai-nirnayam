@@ -1,0 +1,41 @@
+# Git
+.git
+.gitignore
+
+# Python artifacts
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.venv
+venv
+.python312-venv
+
+# IDE
+.vscode
+.idea
+
+# Documentation (not needed in container)
+*.md
+LICENSE
+
+# Testing
+tests/
+
+# Generated databases (built at runtime)
+data/*.db
+data/mem0_faiss_index/
+data/test_mem0_faiss_index/
+data/faiss_index_integration_test/
+
+# Environment files (secrets come from Docker env vars)
+.env
+.env.*
+
+# Docker files (prevent recursive builds)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# GitHub
+.github/
