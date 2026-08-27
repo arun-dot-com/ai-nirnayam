@@ -36,7 +36,7 @@ jobs:
         run: poetry check
 
       - name: Check lock file is up to date
-        run: poetry lock --check
+        run: poetry check --lock
 
       - name: Validate requirements.txt exists
         run: |
