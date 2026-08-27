@@ -230,12 +230,11 @@ class SurveyorAgent:
         raw_text_lower = state.get("raw_input_text", "").lower()
         verified = state.get("verified_add_ons", {})
         
-        # Check for Engine Protect variations (e.g., "engine cover", "engine protection")
-        if verified.get("has_engine_protect") is False and any(kw in raw_text_lower for kw in ["engine protect", "engine cover", "engine protection"]):
+        # Use 'not' instead of 'is False' to safely handle SQLite integer 0
+        if not verified.get("has_engine_protect") and any(kw in raw_text_lower for kw in ["engine protect", "engine cover", "engine protection"]):
             warnings.append("⚠️ Claim text mentions 'Engine Cover/Protect', but policy records show this add-on is NOT active. Evaluated without it.")
             
-        # Check for Zero Dep variations (e.g., "zero dep", "bumper to bumper")
-        if verified.get("has_zero_dep") is False and any(kw in raw_text_lower for kw in ["zero dep", "zero depreciation", "bumper to bumper", "nil depreciation"]):
+        if not verified.get("has_zero_depreciation") and any(kw in raw_text_lower for kw in ["zero dep", "zero depreciation", "bumper to bumper", "nil depreciation"]):
             warnings.append("⚠️ Claim text mentions 'Zero Depreciation', but policy records show this add-on is NOT active. Evaluated without it.")
 
         final_assessment = {
@@ -249,7 +248,7 @@ class SurveyorAgent:
             },
             "ncb_history_note": "No prior claims found." if not state.get("memory_history") else f"Prior history: {state['memory_history'][0].get('content')}",
             "line_items": state.get("tool_calculations", []),
-            "system_warnings": warnings, # <-- This passes the warnings to the schema
+            "system_warnings": warnings, 
             "summary": {
                 "total_claimed_inr": round(total_claimed, 2),
                 "total_approved_inr": round(total_approved, 2),
