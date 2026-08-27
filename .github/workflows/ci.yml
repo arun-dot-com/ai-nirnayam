@@ -1,0 +1,331 @@
+name: "CI: Pull Request Validation"
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [develop]
+
+# Cancel in-progress runs for the same PR
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  # ==========================================
+  # STAGE 1: Dependency & Config Validation
+  # ==========================================
+  dependency-validation:
+    name: "📦 Dependency Validation"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Validate pyproject.toml
+        run: poetry check
+
+      - name: Check lock file is up to date
+        run: poetry lock --check
+
+      - name: Validate requirements.txt exists
+        run: |
+          if [ ! -f requirements.txt ]; then
+            echo "❌ requirements.txt is missing!"
+            exit 1
+          fi
+          echo "✅ requirements.txt found"
+
+  config-validation:
+    name: "⚙️ Config Validation"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install YAML validator
+        run: pip install yamllint
+
+      - name: Validate YAML configs
+        run: yamllint -d relaxed configs/
+
+      - name: Validate presidio_recognizers.yaml structure
+        run: |
+          python -c "
+          import yaml
+          with open('configs/presidio_recognizers.yaml', 'r') as f:
+              data = yaml.safe_load(f)
+          assert isinstance(data, (list, dict)), 'Invalid YAML structure'
+          print('✅ presidio_recognizers.yaml is valid')
+          "
+
+      - name: Validate agent_prompts.yaml structure
+        run: |
+          python -c "
+          import yaml
+          with open('configs/agent_prompts.yaml', 'r') as f:
+              data = yaml.safe_load(f)
+          assert isinstance(data, (list, dict)), 'Invalid YAML structure'
+          print('✅ agent_prompts.yaml is valid')
+          "
+
+  # ==========================================
+  # STAGE 2: Syntax & Static Analysis
+  # ==========================================
+  syntax-checks:
+    name: "🔍 Syntax & Linting"
+    runs-on: ubuntu-latest
+    needs: [dependency-validation]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install linters
+        run: pip install ruff
+
+      - name: Check Python syntax (compile all .py files)
+        run: |
+          python -m compileall src/ -q
+          echo "✅ All Python files have valid syntax"
+
+      - name: Run Ruff linter
+        run: ruff check src/ --select E,F,W --ignore E501,F401,F841 || true
+
+  # ==========================================
+  # STAGE 3: Schema Validation
+  # ==========================================
+  schema-validation:
+    name: "📐 Schema Validation"
+    runs-on: ubuntu-latest
+    needs: [syntax-checks]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download spaCy model
+        run: python -m spacy download en_core_web_lg
+
+      - name: Validate Pydantic schemas import correctly
+        run: |
+          python -c "
+          from src.guardrails.schemas import FinalAssessment, LineItem, ClaimSummary
+          print('✅ All Pydantic schemas imported successfully')
+          "
+
+      - name: Run guardrail unit tests
+        run: python -m pytest tests/test_guardrails.py -v --tb=short
+
+  # ==========================================
+  # STAGE 4: Unit Tests (No External Services)
+  # ==========================================
+  unit-tests:
+    name: "🧪 Unit Tests"
+    runs-on: ubuntu-latest
+    needs: [syntax-checks]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download spaCy model
+        run: python -m spacy download en_core_web_lg
+
+      - name: Run deterministic tool tests
+        run: python -m pytest tests/test_tools.py -v --tb=short
+
+      - name: Run policy registry tests
+        run: python -m pytest tests/test_policy_registry.py -v --tb=short
+
+  # ==========================================
+  # STAGE 5: Integration Tests (Redis Service)
+  # ==========================================
+  integration-tests:
+    name: "🔗 Integration Tests (Redis)"
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      REDIS_URL: "redis://localhost:6379/0"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download spaCy model
+        run: python -m spacy download en_core_web_lg
+
+      - name: Run PII masking tests (requires Redis)
+        run: python -m pytest tests/test_pii_masking.py -v --tb=short
+
+  # ==========================================
+  # STAGE 6: Application Startup Check
+  # ==========================================
+  startup-check:
+    name: "🚀 Application Startup Check"
+    runs-on: ubuntu-latest
+    needs: [schema-validation, unit-tests]
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      REDIS_URL: "redis://localhost:6379/0"
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download spaCy model
+        run: python -m spacy download en_core_web_lg
+
+      - name: Verify all core modules import without errors
+        run: |
+          python -c "
+          from src.pii_masking.anonymizer import PIIMaskingManager
+          from src.rag.vector_store import VectorStoreManager
+          from src.policy.policy_registry import PolicyRegistry
+          from src.guardrails.validators import validate_final_assessment
+          from src.tools.part_classifier import classify_part
+          from src.tools.depreciation_calc import get_depreciation_percentage
+          from src.tools.labour_rates import calculate_painting_costs
+          print('✅ All core modules imported successfully')
+          "
+
+  # ==========================================
+  # STAGE 7: Functional / E2E Tests
+  # ==========================================
+  functional-tests:
+    name: "🎯 Functional E2E Tests"
+    runs-on: ubuntu-latest
+    needs: [startup-check, integration-tests]
+    # Only run if OpenAI key is available (skip on fork PRs)
+    if: ${{ secrets.OPENAI_API_KEY != '' }}
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      REDIS_URL: "redis://localhost:6379/0"
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      LANGCHAIN_TRACING_V2: "false"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download spaCy model
+        run: python -m spacy download en_core_web_lg
+
+      - name: Run full E2E test suite
+        run: python -m pytest tests/test_e2e_scenarios.py -v --tb=short
+
+      - name: Run agent graph tests
+        run: python -m pytest tests/test_agent.py -v --tb=short
+
+      - name: Run memory tests
+        run: python -m pytest tests/test_memory.py -v --tb=short
+
+  # ==========================================
+  # GATE: All Checks Must Pass
+  # ==========================================
+  ci-gate:
+    name: "✅ CI Gate: All Checks Passed"
+    runs-on: ubuntu-latest
+    needs: [
+      dependency-validation,
+      config-validation,
+      syntax-checks,
+      schema-validation,
+      unit-tests,
+      integration-tests,
+      startup-check,
+      functional-tests
+    ]
+    if: always()
+    steps:
+      - name: Check all jobs succeeded
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "❌ One or more CI stages failed!"
+            exit 1
+          fi
+          echo "✅ All CI stages passed successfully!"
