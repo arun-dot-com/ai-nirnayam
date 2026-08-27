@@ -173,9 +173,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Download spaCy model
-        run: python -m spacy download en_core_web_lg
-
       - name: Validate Pydantic schemas import correctly
         run: |
           python -c "
