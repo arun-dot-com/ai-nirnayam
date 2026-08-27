@@ -3,7 +3,6 @@
 [![CI: Pull Request Validation](https://github.com/arun-dot-com/ai-nirnayam/actions/workflows/ci.yml/badge.svg)](https://github.com/arun-dot-com/ai-nirnayam/actions/workflows/ci.yml)
 [![CD: Build, Push & Deploy](https://github.com/arun-dot-com/ai-nirnayam/actions/workflows/cd.yml/badge.svg)](https://github.com/arun-dot-com/ai-nirnayam/actions/workflows/cd.yml)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **Nirnayam** (Sanskrit for "Decision" or "Resolution") is an enterprise-grade, autonomous AI agent designed to automate and validate Motor Insurance Own Damage (OD) claim assessments. It combines Retrieval-Augmented Generation (RAG), agentic tool-calling, and strict deterministic guardrails to deliver accurate, fraud-resistant, and PII-compliant claim adjudications in seconds.
 
