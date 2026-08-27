@@ -32,10 +32,9 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Download spaCy model
-        run: python -m spacy download en_core_web_lg
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
 
       - name: Run full test suite
         run: python -m pytest tests/ -v --tb=short
@@ -92,6 +91,9 @@ jobs:
     name: "✅ Deployment Verification"
     runs-on: ubuntu-latest
     needs: [docker-build]
+    env:
+      # Map the secret to an env variable so we can use it in the 'if' condition
+      STREAMLIT_APP_URL: ${{ secrets.STREAMLIT_APP_URL }}
     steps:
       - name: Verify Docker Hub image exists
         run: |
@@ -106,11 +108,12 @@ jobs:
           fi
 
       - name: Verify Streamlit Cloud app is accessible
-        if: ${{ secrets.STREAMLIT_APP_URL != '' }}
+        # Use the env variable in the condition instead of secrets
+        if: ${{ env.STREAMLIT_APP_URL != '' }}
         run: |
           echo "🔍 Checking Streamlit Cloud app health..."
           sleep 30
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.STREAMLIT_APP_URL }}/_stcore/health")
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ env.STREAMLIT_APP_URL }}/_stcore/health")
           if [ "$HTTP_STATUS" == "200" ]; then
             echo "✅ Streamlit Cloud app is healthy!"
           else
