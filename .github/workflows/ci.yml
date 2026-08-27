@@ -171,8 +171,9 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
-        run: pip install pytest
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
 
       - name: Validate Pydantic schemas import correctly
         run: |
@@ -206,8 +207,9 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
-        run: pip install pytest
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
 
       - name: Run deterministic tool tests
         run: python -m pytest tests/test_tools.py -v --tb=short
@@ -237,8 +239,9 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
-        run: pip install pytest
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
 
 
       - name: Run PII masking tests (requires Redis)
@@ -266,8 +269,9 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
-        run: pip install pytest
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
 
       - name: Verify all core modules import without errors
         run: |
@@ -306,9 +310,9 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
-        run: pip install pytest
-
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
 
       - name: Run full E2E test suite
         run: python -m pytest tests/test_e2e_scenarios.py -v --tb=short
