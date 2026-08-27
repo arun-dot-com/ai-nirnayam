@@ -17,20 +17,11 @@ jobs:
   pre-deploy-validation:
     name: "🔒 Pre-Deploy Validation"
     runs-on: ubuntu-latest
-    services:
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     env:
-      REDIS_URL: "redis://localhost:6379/0"
+      REDIS_URL: ${{ secrets.REDIS_URL }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       LANGCHAIN_TRACING_V2: "false"
+      LANGCHAIN_API_KEY: ${{ secrets.LANGCHAIN_API_KEY }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -75,12 +66,9 @@ jobs:
         with:
           images: ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
           tags: |
-            # Tag with 'latest' on main branch pushes
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-            # Tag with version on release tags (e.g., v1.0.0)
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            # Tag with short commit SHA
             type=sha,prefix=
 
       - name: Build and push Docker image
@@ -121,7 +109,7 @@ jobs:
         if: ${{ secrets.STREAMLIT_APP_URL != '' }}
         run: |
           echo "🔍 Checking Streamlit Cloud app health..."
-          sleep 30  # Wait for Streamlit Cloud to auto-deploy
+          sleep 30
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.STREAMLIT_APP_URL }}/_stcore/health")
           if [ "$HTTP_STATUS" == "200" ]; then
             echo "✅ Streamlit Cloud app is healthy!"
