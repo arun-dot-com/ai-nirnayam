@@ -14,8 +14,8 @@ def compiled_agent():
     """Provides a compiled LangGraph Surveyor Agent for testing."""
     # Use a mock or existing FAISS index for the test
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
-    # Point to the index we built in Step 2, or create a dummy one
-    vs = FAISS.load_local("data/faiss_index_integration_test", embedder, allow_dangerous_deserialization=True)
+    # Point to the index we built
+    vs = FAISS.load_local("data/faiss_index", embedder, allow_dangerous_deserialization=True)
     
     agent = SurveyorAgent(vectorstore=vs)
     return agent.build_graph()
