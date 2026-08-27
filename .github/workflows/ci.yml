@@ -172,6 +172,7 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r requirements.txt
+        run: pip install pytest
 
       - name: Validate Pydantic schemas import correctly
         run: |
@@ -206,9 +207,7 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r requirements.txt
-
-      - name: Download spaCy model
-        run: python -m spacy download en_core_web_lg
+        run: pip install pytest
 
       - name: Run deterministic tool tests
         run: python -m pytest tests/test_tools.py -v --tb=short
@@ -239,9 +238,8 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r requirements.txt
+        run: pip install pytest
 
-      - name: Download spaCy model
-        run: python -m spacy download en_core_web_lg
 
       - name: Run PII masking tests (requires Redis)
         run: python -m pytest tests/test_pii_masking.py -v --tb=short
@@ -269,9 +267,7 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r requirements.txt
-
-      - name: Download spaCy model
-        run: python -m spacy download en_core_web_lg
+        run: pip install pytest
 
       - name: Verify all core modules import without errors
         run: |
@@ -311,9 +307,8 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r requirements.txt
+        run: pip install pytest
 
-      - name: Download spaCy model
-        run: python -m spacy download en_core_web_lg
 
       - name: Run full E2E test suite
         run: python -m pytest tests/test_e2e_scenarios.py -v --tb=short
