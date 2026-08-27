@@ -27,11 +27,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy installed Python packages from builder
+# Copy installed Python packages from builder (includes the spaCy model!)
 COPY --from=builder /install /usr/local
-
-# Download spaCy model at build time (not runtime)
-RUN python -m spacy download en_core_web_lg
 
 # Copy application code
 COPY src/ ./src/
