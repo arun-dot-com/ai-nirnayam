@@ -58,11 +58,36 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install YAML validator
-        run: pip install yamllint
+      - name: Install PyYAML
+        run: pip install pyyaml
 
-      - name: Validate YAML configs
-        run: yamllint -d relaxed configs/
+      - name: Validate all YAML files are parseable
+        run: |
+          python -c "
+          import yaml
+          import sys
+          
+          yaml_files = [
+              'configs/presidio_recognizers.yaml',
+              'configs/agent_prompts.yaml',
+              'configs/logging_config.yaml'
+          ]
+          
+          for file_path in yaml_files:
+              try:
+                  with open(file_path, 'r') as f:
+                      data = yaml.safe_load(f)
+                  if data is None:
+                      print(f'❌ {file_path} is empty')
+                      sys.exit(1)
+                  print(f'✅ {file_path} is valid YAML')
+              except yaml.YAMLError as e:
+                  print(f'❌ {file_path} has YAML errors: {e}')
+                  sys.exit(1)
+              except FileNotFoundError:
+                  print(f'❌ {file_path} not found')
+                  sys.exit(1)
+          "
 
       - name: Validate presidio_recognizers.yaml structure
         run: |
@@ -70,8 +95,10 @@ jobs:
           import yaml
           with open('configs/presidio_recognizers.yaml', 'r') as f:
               data = yaml.safe_load(f)
-          assert isinstance(data, (list, dict)), 'Invalid YAML structure'
-          print('✅ presidio_recognizers.yaml is valid')
+          assert 'recognizers' in data, 'Missing recognizers key'
+          assert isinstance(data['recognizers'], list), 'recognizers must be a list'
+          assert len(data['recognizers']) > 0, 'recognizers list is empty'
+          print('✅ presidio_recognizers.yaml structure is valid')
           "
 
       - name: Validate agent_prompts.yaml structure
@@ -80,10 +107,21 @@ jobs:
           import yaml
           with open('configs/agent_prompts.yaml', 'r') as f:
               data = yaml.safe_load(f)
-          assert isinstance(data, (list, dict)), 'Invalid YAML structure'
-          print('✅ agent_prompts.yaml is valid')
+          assert 'extraction_prompt' in data, 'Missing extraction_prompt key'
+          assert 'assessment_prompt' in data, 'Missing assessment_prompt key'
+          print('✅ agent_prompts.yaml structure is valid')
           "
 
+      - name: Validate logging_config.yaml structure
+        run: |
+          python -c "
+          import yaml
+          with open('configs/logging_config.yaml', 'r') as f:
+              data = yaml.safe_load(f)
+          assert 'version' in data, 'Missing version key'
+          assert 'handlers' in data, 'Missing handlers key'
+          print('✅ logging_config.yaml structure is valid')
+          "
   # ==========================================
   # STAGE 2: Syntax & Static Analysis
   # ==========================================
